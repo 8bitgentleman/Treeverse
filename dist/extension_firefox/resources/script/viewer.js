@@ -30282,12 +30282,18 @@ const formatTweets = (node, initial = false, indent = 1, initialAuthor = "", has
             .join("\n" + "  ".repeat(indent + 1) + "- ")
         : false;
     if (initial) {
-        out = `- ${tweetText} - [[Twitter thread]] by [[${node.tweet.name}]], [link](${node.tweet.getUrl()})\n`;
+        out = `- #[[Twitter thread]] ${tweetText} [*](${node.tweet.getUrl()})\n`;
         initialAuthor = node.tweet.username;
     }
     else {
         if (tweetText) {
-            out = "  ".repeat(indent) + "- " + tweetText + "\n";
+            out =
+                "  ".repeat(indent) +
+                    "- " +
+                    tweetText +
+                    " [*](" +
+                    node.tweet.getUrl() +
+                    ")\n";
         }
         if (node.tweet.entities.media) {
             node.tweet.entities.media.forEach(m => {
@@ -30306,8 +30312,8 @@ const formatTweets = (node, initial = false, indent = 1, initialAuthor = "", has
     }
     return out;
 };
-const expandText = 'Expand All';
-const cancelExpandText = 'Stop Expanding';
+const expandText = "Expand All";
+const cancelExpandText = "Stop Expanding";
 /**
  * The controller for the main tree visualization.
  */
@@ -30315,25 +30321,24 @@ class VisualizationController {
     constructor(proxy = null) {
         const offline = proxy === null;
         this.server = offline ? null : new tweet_server_1.TweetServer(proxy);
-        this.feed = new feed_controller_1.FeedController(document.getElementById('feedContainer'));
-        this.vis = new tweet_visualization_1.TweetVisualization(document.getElementById('tree'));
+        this.feed = new feed_controller_1.FeedController(document.getElementById("feedContainer"));
+        this.vis = new tweet_visualization_1.TweetVisualization(document.getElementById("tree"));
         this.expandingTimer = null;
-        this.toolbar = new toolbar_1.Toolbar(document.getElementById('toolbar'));
+        this.toolbar = new toolbar_1.Toolbar(document.getElementById("toolbar"));
         if (!offline) {
-            this.toolbar.addButton('Create shareable link', this.shareClicked.bind(this));
-            this.toolbar.addButton('Copy to clipboard', this.copyClipboard.bind(this));
-            this.expandButton = this.toolbar.addButton('Expand All', this.expandAll.bind(this));
+            this.toolbar.addButton("Create shareable link", this.shareClicked.bind(this));
+            this.toolbar.addButton("Copy to clipboard", this.copyClipboard.bind(this));
+            this.expandButton = this.toolbar.addButton("Expand All", this.expandAll.bind(this));
         }
-        this.vis.on('hover', this.feed.setFeed.bind(this.feed));
+        this.vis.on("hover", this.feed.setFeed.bind(this.feed));
         if (!offline) {
-            this.vis.on('dblclick', this.expandNode.bind(this));
+            this.vis.on("dblclick", this.expandNode.bind(this));
         }
     }
     fetchTweets(tweetId) {
-        this.server.requestTweets(tweetId, null).then((tweetSet) => {
+        this.server.requestTweets(tweetId, null).then(tweetSet => {
             let tweetTree = tweet_tree_1.TweetTree.fromTweetSet(tweetSet);
-            document.getElementsByTagName('title')[0].innerText =
-                `${tweetTree.root.tweet.username} - "${tweetTree.root.tweet.bodyText}" in Treeverse`;
+            document.getElementsByTagName("title")[0].innerText = `${tweetTree.root.tweet.username} - "${tweetTree.root.tweet.bodyText}" in Treeverse`;
             this.setInitialTweetData(tweetTree);
         });
     }
@@ -30343,9 +30348,7 @@ class VisualizationController {
         this.vis.zoomToFit();
     }
     expandNode(node, retry = true) {
-        this.server
-            .requestTweets(node.tweet.id, node.cursor)
-            .then((tweetSet) => {
+        this.server.requestTweets(node.tweet.id, node.cursor).then(tweetSet => {
             let added = this.tweetTree.addTweets(tweetSet);
             if (added > 0) {
                 this.vis.setTreeData(this.tweetTree);
@@ -30360,7 +30363,7 @@ class VisualizationController {
     }
     shareClicked() {
         let value = serialize_1.SerializedTweetNode.fromTweetNode(this.tweetTree.root);
-        chrome.runtime.sendMessage({ payload: value, message: 'share' });
+        chrome.runtime.sendMessage({ payload: value, message: "share" });
     }
     expandOne() {
         for (let tweetNode of this.tweetTree.index.values()) {
