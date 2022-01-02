@@ -5,3 +5,4 @@ node_modules
 #extension_firefox/resources/script
 .vscode
 #dist
+.DS_Store

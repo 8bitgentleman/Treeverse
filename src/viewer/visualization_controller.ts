@@ -10,7 +10,7 @@ import { compact } from "lodash";
 
 export type PointNode = d3.HierarchyPointNode<TweetNode>;
 
-const formatTweet = (tweet, other) => {
+const formatTweet = (tweet, other, initial?) => {
   let md = tweet.bodyText;
   if (tweet.entities.user_mentions) {
     if (
@@ -33,11 +33,22 @@ const formatTweet = (tweet, other) => {
   if (md === "") {
     return undefined;
   }
-  return `${other ? `[[${tweet.name}]]: ` : ""}${md
-    .replace(/^(\@.+?\s)+/g, "")
-    .replace(/^[\•\-\*]/gm, "")
-    .trim()}`;
+  if (initial){
+    console.log(tweet.user)
+    return `${other ? `by **${tweet.name}**: ` : ""}${md
+      .replace(/^(\@.+?\s)+/g, "")
+      .replace(/^[\•\-\*]/gm, "")
+      .trim()}`;
+    }else{
+      return `${other ? `__` : ""}${md
+        .replace(/^(\@.+?\s)+/g, "")
+        .replace(/^[\•\-\*]/gm, "")
+        .trim()}__`;
+    }
 };
+
+
+
 const formatTweets = (
   node,
   initial = false,
@@ -52,7 +63,8 @@ const formatTweets = (
 
   const tweetTextRaw = formatTweet(
     node.tweet,
-    initialAuthor === "" || node.tweet.username !== initialAuthor
+    initialAuthor === "" || node.tweet.username !== initialAuthor,
+    initial
   );
   const tweetText = tweetTextRaw
     ? tweetTextRaw
@@ -62,17 +74,14 @@ const formatTweets = (
     : false;
 
   if (initial) {
-    out = `- #[[Twitter thread]] ${tweetText} [*](${node.tweet.getUrl()})\n`;
+    out = `- #[[Twitter thread]] [🧵](${node.tweet.getUrl()}) ${tweetText} \n`;
     initialAuthor = node.tweet.username;
   } else {
     if (tweetText) {
       out =
         "  ".repeat(indent) +
         "- " +
-        tweetText +
-        " [*](" +
-        node.tweet.getUrl() +
-        ")\n";
+        tweetText + "\n";
     }
     if (node.tweet.entities.media) {
       node.tweet.entities.media.forEach(m => {
@@ -192,7 +201,7 @@ export class VisualizationController {
         this.shareClicked.bind(this)
       );
       this.toolbar.addButton(
-        "Copy to clipboard",
+        "Copy for Roam",
         this.copyClipboard.bind(this)
       );
       this.expandButton = this.toolbar.addButton(

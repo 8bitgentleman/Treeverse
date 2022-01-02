@@ -30245,7 +30245,7 @@ const tweet_tree_1 = __webpack_require__(/*! ./tweet_tree */ "./viewer/tweet_tre
 const tweet_server_1 = __webpack_require__(/*! ./tweet_server */ "./viewer/tweet_server.ts");
 const toolbar_1 = __webpack_require__(/*! ./toolbar */ "./viewer/toolbar.ts");
 const serialize_1 = __webpack_require__(/*! ./serialize */ "./viewer/serialize.ts");
-const formatTweet = (tweet, other) => {
+const formatTweet = (tweet, other, initial) => {
     let md = tweet.bodyText;
     if (tweet.entities.user_mentions) {
         if (tweet.entities.user_mentions.some(user => user.screen_name === "threadreaderapp")) {
@@ -30264,17 +30264,26 @@ const formatTweet = (tweet, other) => {
     if (md === "") {
         return undefined;
     }
-    return `${other ? `[[${tweet.name}]]: ` : ""}${md
-        .replace(/^(\@.+?\s)+/g, "")
-        .replace(/^[\•\-\*]/gm, "")
-        .trim()}`;
+    if (initial) {
+        console.log(tweet.user);
+        return `${other ? `by **${tweet.name}**: ` : ""}${md
+            .replace(/^(\@.+?\s)+/g, "")
+            .replace(/^[\•\-\*]/gm, "")
+            .trim()}`;
+    }
+    else {
+        return `${other ? `__` : ""}${md
+            .replace(/^(\@.+?\s)+/g, "")
+            .replace(/^[\•\-\*]/gm, "")
+            .trim()}__`;
+    }
 };
 const formatTweets = (node, initial = false, indent = 1, initialAuthor = "", hasSiblings = false) => {
     let out = "";
     if (node.tweet.username === "threadreaderapp") {
         return false;
     }
-    const tweetTextRaw = formatTweet(node.tweet, initialAuthor === "" || node.tweet.username !== initialAuthor);
+    const tweetTextRaw = formatTweet(node.tweet, initialAuthor === "" || node.tweet.username !== initialAuthor, initial);
     const tweetText = tweetTextRaw
         ? tweetTextRaw
             .split(/\n+/)
@@ -30282,7 +30291,7 @@ const formatTweets = (node, initial = false, indent = 1, initialAuthor = "", has
             .join("\n" + "  ".repeat(indent + 1) + "- ")
         : false;
     if (initial) {
-        out = `- #[[Twitter thread]] ${tweetText} [*](${node.tweet.getUrl()})\n`;
+        out = `- #[[Twitter thread]] [🧵](${node.tweet.getUrl()}) ${tweetText} \n`;
         initialAuthor = node.tweet.username;
     }
     else {
@@ -30290,10 +30299,7 @@ const formatTweets = (node, initial = false, indent = 1, initialAuthor = "", has
             out =
                 "  ".repeat(indent) +
                     "- " +
-                    tweetText +
-                    " [*](" +
-                    node.tweet.getUrl() +
-                    ")\n";
+                    tweetText + "\n";
         }
         if (node.tweet.entities.media) {
             node.tweet.entities.media.forEach(m => {
@@ -30327,7 +30333,7 @@ class VisualizationController {
         this.toolbar = new toolbar_1.Toolbar(document.getElementById("toolbar"));
         if (!offline) {
             this.toolbar.addButton("Create shareable link", this.shareClicked.bind(this));
-            this.toolbar.addButton("Copy to clipboard", this.copyClipboard.bind(this));
+            this.toolbar.addButton("Copy for Roam", this.copyClipboard.bind(this));
             this.expandButton = this.toolbar.addButton("Expand All", this.expandAll.bind(this));
         }
         this.vis.on("hover", this.feed.setFeed.bind(this.feed));
