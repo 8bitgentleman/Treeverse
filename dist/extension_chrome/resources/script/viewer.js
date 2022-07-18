@@ -30272,10 +30272,10 @@ const formatTweet = (tweet, other, initial) => {
             .trim()}`;
     }
     else {
-        return `${other ? `__` : ""}${md
+        return `${other ? `` : ""}${md
             .replace(/^(\@.+?\s)+/g, "")
             .replace(/^[\•\-\*]/gm, "")
-            .trim()}__`;
+            .trim()}`;
     }
 };
 const formatTweets = (node, initial = false, indent = 1, initialAuthor = "", hasSiblings = false) => {
